@@ -1,0 +1,53 @@
+data_root: /home/aistudio/work/
+batch_size: 2 #32GB显存，shape=256x128x128，batchsize可以设置2
+iters: 10000
+
+train_dataset:
+  type: MedicalDataset  #Dataset基类
+  dataset_root: /home/aistudio/work/SpleenAndLiver_Np #转换后的文件路径
+  result_dir: /home/aistudio/result  #保存结果路径
+  transforms:
+    - type: RandomRotation3D  #3d选择
+      degrees: 90
+    - type: RandomFlip3D #水平翻转
+  mode: train
+  num_classes: 3  #分割类别数
+
+val_dataset:
+  type: MedicalDataset
+  dataset_root: /home/aistudio/work/SpleenAndLiver_Np
+  result_dir: /home/aistudio/result
+  num_classes: 3
+  transforms: []
+  mode: val
+  dataset_json_path: "/home/aistudio/work/dataset.json"
+
+optimizer:
+  type: sgd
+  momentum: 0.9
+  weight_decay: 1.0e-4
+
+lr_scheduler:
+  type: PolynomialDecay
+  decay_steps: 10000
+  learning_rate: 0.1
+  end_lr: 0
+  power: 0.9
+
+loss:
+  types:
+    - type: MixedLoss
+      losses:
+        - type: CrossEntropyLoss
+        - type: DiceLoss
+      coef: [0.4, 0.6]
+  coef: [1]
+
+model:
+  type: VNet
+  elu: False
+  in_channels: 1
+  num_classes: 3
+  pretrained: null
+  kernel_size: [[2,2,4], [2,2,2], [2,2,2], [2,2,2]]
+  stride_size: [[2,2,1], [2,2,1], [2,2,2], [2,2,2]]
